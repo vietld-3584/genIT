@@ -6,22 +6,42 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:setup": "./scripts/setup-db.sh",
+    "db:migrate:create": "mikro-orm migration:create",
+    "db:migrate:up": "mikro-orm migration:up",
+    "db:migrate:down": "mikro-orm migration:down",
+    "db:migrate:list": "mikro-orm migration:list",
+    "db:seed": "tsx lib/db/seed/seed.ts",
+    "db:reset": "tsx lib/db/scripts/dev-db-reset.ts",
+    "db:debug": "mikro-orm debug",
+    "db:test": "tsx scripts/test-db-layer.ts"
   },
   "dependencies": {
+    "@mikro-orm/cli": "^6.5.3",
+    "@mikro-orm/core": "^6.5.3",
+    "@mikro-orm/migrations": "^6.5.3",
+    "@mikro-orm/postgresql": "^6.5.3",
+    "dotenv": "^17.2.2",
+    "next": "15.5.3",
+    "pg": "^8.16.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.3"
+    "reflect-metadata": "^0.2.2",
+    "zod": "^4.1.8"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.15.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
-    "@eslint/eslintrc": "^3"
+    "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5"
   }
 }

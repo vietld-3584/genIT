@@ -1,0 +1,2 @@
+# Placeholder file for migrations directory
+# Migrations will be generated automatically using: npx mikro-orm migration:create
