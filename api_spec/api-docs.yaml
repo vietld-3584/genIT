@@ -1,0 +1,1087 @@
+openapi: 3.0.3
+info:
+  title: Chat Application API
+  description: A comprehensive chat application API supporting user authentication, channel management, messaging, and user profile management
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@chatapp.com
+
+servers:
+  - url: https://api.chatapp.com/v1
+    description: Production server
+  - url: https://staging-api.chatapp.com/v1
+    description: Staging server
+
+security:
+  - bearerAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/signin:
+    post:
+      tags:
+        - Authentication
+      summary: User sign in
+      description: Authenticate user with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  minLength: 5
+                  maxLength: 254
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  minLength: 6
+                  maxLength: 128
+                  example: "securePassword123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT access token
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  user:
+                    $ref: '#/components/schemas/User'
+                  expiresIn:
+                    type: integer
+                    description: Token expiration time in seconds
+                    example: 3600
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: User sign up with email
+      description: Register a new user account with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                  minLength: 5
+                  maxLength: 254
+                  example: "newuser@example.com"
+                password:
+                  type: string
+                  format: password
+                  minLength: 6
+                  maxLength: 128
+                  example: "securePassword123"
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  example: "John Doe"
+                title:
+                  type: string
+                  maxLength: 100
+                  example: "Software Engineer"
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT access token
+                  user:
+                    $ref: '#/components/schemas/User'
+                  expiresIn:
+                    type: integer
+                    description: Token expiration time in seconds
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+ 
+  /auth/signup/google:
+    post:
+      tags:
+        - Authentication
+      summary: Sign up with Google OAuth
+      description: Register or sign in using Google OAuth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Google OAuth token
+                  example: "google_oauth_token_here"
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+                  expiresIn:
+                    type: integer
+        '400':
+          description: Invalid OAuth token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/signup/apple:
+    post:
+      tags:
+        - Authentication
+      summary: Sign up with Apple OAuth
+      description: Register or sign in using Apple OAuth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Apple OAuth token
+                  example: "apple_oauth_token_here"
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+                  expiresIn:
+                    type: integer
+        '400':
+          description: Invalid OAuth token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Logout user and invalidate token
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logout successful"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Channel Management Endpoints
+  /channels:
+    get:
+      tags:
+        - Channels
+      summary: Get user's channels
+      description: Retrieve all channels the authenticated user has access to
+      responses:
+        '200':
+          description: List of channels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Channel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Channels
+      summary: Create a new channel
+      description: Create a new chat channel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: "Research"
+                description:
+                  type: string
+                  maxLength: 1000
+                  example: "Channel for research discussions"
+      responses:
+        '201':
+          description: Channel created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /channels/{channelId}:
+    get:
+      tags:
+        - Channels
+      summary: Get channel details
+      description: Retrieve details of a specific channel
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "ch_123456"
+      responses:
+        '200':
+          description: Channel details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Channels
+      summary: Update channel
+      description: Update channel name and description
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "ch_123456"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: "Updated Research"
+                description:
+                  type: string
+                  maxLength: 1000
+                  example: "Updated description for research discussions"
+      responses:
+        '200':
+          description: Channel updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Channels
+      summary: Delete channel
+      description: Delete a channel permanently
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "ch_123456"
+      responses:
+        '200':
+          description: Channel deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Channel deleted successfully"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Channel Members Management
+  /channels/{channelId}/members:
+    get:
+      tags:
+        - Channel Members
+      summary: Get channel members
+      description: Retrieve all members of a specific channel
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "ch_123456"
+      responses:
+        '200':
+          description: List of channel members
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  count:
+                    type: integer
+                    example: 72
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Channel Members
+      summary: Add members to channel
+      description: Add one or more members to a channel
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "ch_123456"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userIds
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  example: ["user_123", "user_456"]
+      responses:
+        '200':
+          description: Members added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Members added successfully"
+                  added:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Channel or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /channels/{channelId}/members/{userId}:
+    delete:
+      tags:
+        - Channel Members
+      summary: Remove member from channel
+      description: Remove a member from a channel
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "ch_123456"
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "user_123"
+      responses:
+        '200':
+          description: Member removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Member removed successfully"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Channel or member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Users Search
+  /users/search:
+    get:
+      tags:
+        - Users
+      summary: Search users
+      description: Search for users to add to channels
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+          example: "john"
+          description: Search query for user name or email
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  total:
+                    type: integer
+                    example: 5
+        '400':
+          description: Invalid search query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Messages
+  /channels/{channelId}/messages:
+    get:
+      tags:
+        - Messages
+      summary: Get channel messages
+      description: Retrieve messages from a channel with pagination
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "ch_123456"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          example: 50
+        - name: before
+          in: query
+          schema:
+            type: string
+          example: "msg_123456"
+          description: Get messages before this message ID
+        - name: after
+          in: query
+          schema:
+            type: string
+          example: "msg_123456"
+          description: Get messages after this message ID
+      responses:
+        '200':
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+                  hasMore:
+                    type: boolean
+                    example: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Messages
+      summary: Send message
+      description: Send a message to a channel
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "ch_123456"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  example: "Hello, everyone!"
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied or insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # User Profile Management
+  /user/profile:
+    get:
+      tags:
+        - User Profile
+      summary: Get user profile
+      description: Retrieve the authenticated user's profile information
+      responses:
+        '200':
+          description: User profile information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - User Profile
+      summary: Update user profile
+      description: Update user's name and title
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  example: "Jane Doe"
+                title:
+                  type: string
+                  maxLength: 100
+                  example: "Senior Developer"
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /user/profile/contact:
+    put:
+      tags:
+        - User Profile
+      summary: Update contact information
+      description: Update user's email address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  minLength: 5
+                  maxLength: 254
+                  example: "newemail@example.com"
+      responses:
+        '200':
+          description: Contact information updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /user/profile/photo:
+    put:
+      tags:
+        - User Profile
+      summary: Update profile photo
+      description: Upload and update user's profile photo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - photo
+              properties:
+                photo:
+                  type: string
+                  format: binary
+                  description: Profile photo file (JPG, PNG)
+      responses:
+        '200':
+          description: Profile photo updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  photoUrl:
+                    type: string
+                    format: uri
+                    example: "https://cdn.chatapp.com/avatars/user123.jpg"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid file format or size
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "user_123456"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        name:
+          type: string
+          example: "John Doe"
+        title:
+          type: string
+          example: "Software Engineer"
+        photoUrl:
+          type: string
+          format: uri
+          example: "https://cdn.chatapp.com/avatars/user123.jpg"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+
+    Channel:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "ch_123456"
+        name:
+          type: string
+          example: "General"
+        description:
+          type: string
+          example: "General discussion channel"
+        memberCount:
+          type: integer
+          example: 72
+        createdBy:
+          type: string
+          example: "user_123456"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "msg_123456"
+        content:
+          type: string
+          example: "Hello, everyone!"
+        sender:
+          $ref: '#/components/schemas/User'
+        channelId:
+          type: string
+          example: "ch_123456"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid input"
+        message:
+          type: string
+          example: "The provided email format is invalid"
+        code:
+          type: string
+          example: "VALIDATION_ERROR"
+        details:
+          type: object
+          additionalProperties: true
+          example:
+            field: "email"
+            reason: "Invalid format"
+
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: Channels
+    description: Channel management operations
+  - name: Channel Members
+    description: Channel membership management
+  - name: Messages
+    description: Message operations
+  - name: Users
+    description: User management operations
+  - name: User Profile
+    description: User profile management
