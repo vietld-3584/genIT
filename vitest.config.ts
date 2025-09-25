@@ -17,10 +17,10 @@ export default defineConfig({
       },
       {
         test: {
-          name: "api",
+          name: "integration",
           globals: true,
           environment: "node",
-          include: ["tests/api/**/*.(spec|test).(ts|js)"],
+          include: ["tests/integration/**/*.(spec|test).(ts|js)"],
         },
       },
     ],
