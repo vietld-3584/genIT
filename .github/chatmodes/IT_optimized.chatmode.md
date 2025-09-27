@@ -55,11 +55,19 @@ Phân tích kỹ lưỡng các tài liệu được cung cấp và chuẩn bị 
 - Phân tích tệp cấu hình kiểm thử chính (vitest.config, jest.config) - KHÔNG tạo tệp cấu hình riêng cho từng profile trừ khi không còn lựa chọn nào khác. Ưu tiên extend trong config.
 
 ##### Lựa chọn Thư viện HTTP Client (dựa trên công nghệ đã phát hiện):
-- **Node.js**: Supertest (ưu tiên cho kiểm thử trong tiến trình - in-process), Axios.
+- **Node.js với Express/Fastify/Koa**: Supertest (ưu tiên cho kiểm thử trong tiến trình - in-process), Axios.
+- **Next.js**: Supertest với Next.js app instance, hoặc Next.js testing utilities
+- **NestJS**: @nestjs/testing với Supertest integration
 - **Python**: httpx (hỗ trợ bất đồng bộ), requests.
 - **Java**: RestAssured, MockMvc (cho Spring).
 - **C#**: HttpClient, RestSharp.
-- **Go**: net/http, testify/assert.
+- **Go**: net/http với httptest package, testify/assert.
+
+##### Server Setup Strategy theo Framework:
+- **Express/Fastify/Koa**: Import app instance, wrap với http.createServer() nếu cần
+- **Next.js**: Sử dụng next() function với test-specific config (dev mode, turbopack settings)
+- **NestJS**: Sử dụng Test.createTestingModule() để tạo app instance
+- **Framework khác**: Phân tích pattern từ main entry point và adapt cho test environment
 
 ##### Xác định Faker Library và Factory Tools:
 - **Node.js**: @faker-js/faker, factory-girl, fishery
@@ -145,6 +153,14 @@ tests/
 
 #### 3.5. Cấu hình HTTP Client và Quy trình Kiểm thử
 
+**Tạo Test Server Setup dựa trên Pattern đã phát hiện:**
+- **Sao chép Server Initialization Logic**: Dựa trên phân tích trên, tạo file `server.[ext]` với pattern tương tự entry point nhưng được tối ưu cho test environment
+- **Test-specific Configuration**: 
+  - Sử dụng in-memory database nếu có thể
+  - Disable logging trong test mode
+  - Sử dụng random port hoặc không bind port (in-process testing)
+- **Export Test-ready Instance**: Export app instance và server instance để test files có thể import và sử dụng
+
 **Flow Thực thi:**
 1. Chạy script test (ví dụ `yarn test:api`)
 2. Công cụ chạy kiểm thử (Vitest, Jest) khởi động với một cấu hình (profile) riêng cho kiểm thử API.
@@ -208,6 +224,7 @@ tests/
 #### 4.1. Xác thực Cú pháp & Phụ thuộc:
 - Xem lại toàn bộ mã được tạo để tìm lỗi cú pháp.
 - Xác minh tất cả các câu lệnh import/require là chính xác.
+* **Quan trọng**: Run tests trong terminal ảo (sử dụng câu script run test) để kiểm tra các lỗi phụ thuộc. Test failed nhưng cần đảm bảo các test runable, mà không dính lỗi syntax hoặc lỗi thiếu thư viện.
 - Cung cấp các lệnh cài đặt cho các phụ thuộc còn thiếu (bao gồm faker library và factory tools).
 
 #### 4.2. Kiểm tra Factory và Seeding:

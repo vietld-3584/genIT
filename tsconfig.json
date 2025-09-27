@@ -22,7 +22,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/lib/*": ["./lib/*"]
+      "@/lib/*": ["./lib/*"],
+      "@/tests/*": ["./tests/*"]
     },
     "types": ["vitest/globals"]
   },
