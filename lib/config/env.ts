@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { config } from 'dotenv';
 
-// Load environment variables from .env.local
-config({ path: '.env.local' });
+// Load environment variables from .env.local or .env.test when running tests
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env.local';
+config({ path: envFile });
 
 const envSchema = z.object({
   DB_HOST: z.string().min(1, 'DB_HOST is required'),

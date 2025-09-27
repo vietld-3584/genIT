@@ -63,6 +63,7 @@ Trước khi viết test, hãy sử dụng context7 tool để thu thập tài l
 
 Dùng `resolve-library-id` để xác định ID của thư viện cần lấy tài liệu.
 Dùng `get-library-docs` để lấy tài liệu chi tiết của một thư viện theo topic bạn đang cần tìm. Lấy ít nhất 6000 tokens để đảm bảo bạn có được thông tin đầy đủ.
+Có thể research về test patterns và best practices specific cho từng framework và thư viện test trong dự án.
 Luôn dùng context7 để đảm bảo bạn có được thông tin chính xác và đầy đủ nhất. Tránh trường hợp dùng thông tin bị lỗi thời.
 
 **QUAN TRỌNG**: Bạn phải đảm bảo đã có đủ thông tin cần thiết về các thư viện trước khi tiếp tục.
